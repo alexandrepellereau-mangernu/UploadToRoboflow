@@ -1,6 +1,7 @@
 import csv
 import requests
 import os
+import tqdm
 
 from PIL import Image
 from io import BytesIO
@@ -10,9 +11,9 @@ from roboflow import Roboflow
 # ---------------------------
 # CONFIGURATION ROBOFLOW
 # ---------------------------
-ROBOFLOW_API_KEY = "wdW0yid4mrKF8Cf8GDyd"
-WORKSPACEID = "alexworkspace-bq4x9"
-PROJECTID = "nu-model-ak1gi"
+ROBOFLOW_API_KEY = "wHviEkEcARlfONcsGn1t"
+WORKSPACEID = "nushelf"
+PROJECTID = "nu-object-detection-uecqg"
 VERSION = "1"
 
 # ---------------------------
@@ -54,7 +55,7 @@ def upload_to_roboflow(image_path, shelfid):
         #sequence_size=100
     )
 
-    print("Upload done")
+    # print("Upload done")
 
     
 def process_row(operationid, left_url, right_url, shelfid):
@@ -62,7 +63,7 @@ def process_row(operationid, left_url, right_url, shelfid):
         if not url.strip():
             continue
 
-        print(f"[Ligne {operationid}] Téléchargement {label} : {url}")
+        # print(f"[Ligne {operationid}] Téléchargement {label} : {url}")
 
         # Download
         img = download_image(url)
@@ -82,16 +83,20 @@ def process_row(operationid, left_url, right_url, shelfid):
 
 def main():
     with open(CSV_FILE, newline="", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
+        reader = list(csv.DictReader(csvfile))
+        total_rows = len(reader)
 
-        for i, row in enumerate(reader, start=1):
-            if i > 100:
-                break
-            operationid = row.get("OperationId", "")
-            left = row.get("PictureLeft", "")
-            right = row.get("PictureRight", "")
-            shelfid = "shelf" + row.get("ShelfIndex", "")
-            process_row(operationid, left, right, shelfid)
+        with tqdm.tqdm(total=total_rows, desc="Processing", unit="file") as pbar:
+            for i, row in enumerate(reader, start=1):
+                operationid = row.get("OperationId", "")
+                left = row.get("PictureLeft", "")
+                right = row.get("PictureRight", "")
+                shelfid = "shelf" + row.get("ShelfIndex", "")
+                try:
+                    process_row(operationid, left, right, shelfid)
+                except Exception as e:
+                    print(f"Error processing row {operationid}: {e}")
+                pbar.update(1)
 
 if __name__ == "__main__":
     main()
