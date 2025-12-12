@@ -91,6 +91,9 @@ def main():
 
         with tqdm.tqdm(total=total_rows, desc="Processing", unit="file") as pbar:
             for i, row in enumerate(reader, start=1):
+                while i < 520:
+                    continue  # Skip until row 520 for resuming purposes
+
                 operationId = row.get("OperationId", "")
                 left_before = row.get("PictureLeftBefore", "")
                 right_before = row.get("PictureRightBefore", "")
