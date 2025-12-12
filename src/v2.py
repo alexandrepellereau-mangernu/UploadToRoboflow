@@ -13,13 +13,13 @@ from roboflow import Roboflow
 # ---------------------------
 ROBOFLOW_API_KEY = "wHviEkEcARlfONcsGn1t"
 WORKSPACEID = "nushelf"
-PROJECTID = "nu-object-detection-uecqg"
+PROJECTID = "sam3-lqgck"
 VERSION = "1"
 
 # ---------------------------
 # FICHIER CSV À LIRE
 # ---------------------------
-CSV_FILE = "balas-pictures-20251101.csv"
+CSV_FILE = "data/v2.csv"
 
 # Initialize the Roboflow object with your API key
 rf = Roboflow(api_key=ROBOFLOW_API_KEY)
