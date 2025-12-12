@@ -40,7 +40,7 @@ def download_image(url):
 def rotate_image(img):
     return img.rotate(180, expand=True)
 
-def upload_to_roboflow(image_path, shelfid):
+def upload_to_roboflow(image_path):
     
     # Upload the image to your project
     #project.upload("UPLOAD_IMAGE.jpg")
@@ -50,7 +50,7 @@ def upload_to_roboflow(image_path, shelfid):
         #batch_name="YOUR_BATCH_NAME",
         #split="train",
         #num_retry_uploads=3,
-        tag_names=[shelfid]
+        #tag_names=[shelfid]
         #sequence_number=99,
         #sequence_size=100
     )
@@ -58,12 +58,12 @@ def upload_to_roboflow(image_path, shelfid):
     # print("Upload done")
 
     
-def process_row(operationid, left_url, right_url, shelfid):
-    for label, url in [("left", left_url), ("right", right_url)]:
+def process_row(operationId, left_before_url, right_before_url, left_after_url, right_after_url):
+    for label, url in [("left_before", left_before_url), ("right_before", right_before_url), ("left_after", left_after_url), ("right_after", right_after_url)]:
         if not url.strip():
             continue
 
-        # print(f"[Ligne {operationid}] Téléchargement {label} : {url}")
+        # print(f"[Ligne {operationId}] Téléchargement {label} : {url}")
 
         # Download
         img = download_image(url)
@@ -71,12 +71,15 @@ def process_row(operationid, left_url, right_url, shelfid):
         # Rotate
         rotated = rotate_image(img)
 
+        # Get image camera
+        camera = url.split("/")[-1].split(".")[0]  # Extract filename without extension
+
         # Save temporarily
-        filename = f"ope_{operationid}_{label}_{shelfid}.jpg"
+        filename = f"ope_{operationId}_{camera}.jpg"
         rotated.save(filename)
 
         # Upload to Roboflow
-        upload_to_roboflow(filename, shelfid)
+        upload_to_roboflow(filename)
 
         # Cleanup
         os.remove(filename)
@@ -88,14 +91,15 @@ def main():
 
         with tqdm.tqdm(total=total_rows, desc="Processing", unit="file") as pbar:
             for i, row in enumerate(reader, start=1):
-                operationid = row.get("OperationId", "")
-                left = row.get("PictureLeft", "")
-                right = row.get("PictureRight", "")
-                shelfid = "shelf" + row.get("ShelfIndex", "")
+                operationId = row.get("OperationId", "")
+                left_before = row.get("PictureLeftBefore", "")
+                right_before = row.get("PictureRightBefore", "")
+                left_after = row.get("PictureLeftAfter", "")
+                right_after = row.get("PictureRightAfter", "")
                 try:
-                    process_row(operationid, left, right, shelfid)
+                    process_row(operationId, left_before, right_before, left_after, right_after)
                 except Exception as e:
-                    print(f"Error processing row {operationid}: {e}")
+                    print(f"Error processing row {operationId}: {e}")
                 pbar.update(1)
 
 if __name__ == "__main__":
