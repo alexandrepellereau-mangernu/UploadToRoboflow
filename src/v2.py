@@ -13,8 +13,11 @@ from roboflow import Roboflow
 # ---------------------------
 ROBOFLOW_API_KEY = "wHviEkEcARlfONcsGn1t"
 WORKSPACEID = "nushelf"
-PROJECTID = "sam3-lqgck"
+PROJECTID = "temporary-experiments"
 VERSION = "1"
+
+START_INDEX = 0
+END_INDEX = 10
 
 # ---------------------------
 # FICHIER CSV À LIRE
@@ -75,7 +78,7 @@ def process_row(operationId, left_before_url, right_before_url, left_after_url, 
         camera = url.split("/")[-1].split(".")[0]  # Extract filename without extension
 
         # Save temporarily
-        filename = f"ope_{operationId}_{camera}.jpg"
+        filename = f"temp/ope_{operationId}_{camera}.jpg"
         rotated.save(filename)
 
         # Upload to Roboflow
@@ -91,8 +94,10 @@ def main():
 
         with tqdm.tqdm(total=total_rows, desc="Processing", unit="file") as pbar:
             for i, row in enumerate(reader, start=1):
-                while i < 520:
-                    continue  # Skip until row 520 for resuming purposes
+                while i < START_INDEX:
+                    continue  # Skip until row START_INDEX for resuming purposes
+                if i > END_INDEX:
+                    break  # Stop processing after END_INDEX
 
                 operationId = row.get("OperationId", "")
                 left_before = row.get("PictureLeftBefore", "")
